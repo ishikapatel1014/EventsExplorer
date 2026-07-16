@@ -2,36 +2,30 @@
 
 ## Overview
 
-EventsExplorer follows **Clean Architecture** with the **MVVM** design pattern to ensure the application remains modular, scalable, testable, and maintainable.
+EventsExplorer follows the **MVVM (Model-View-ViewModel)** architecture combined with the **Repository Pattern** to create a clean, maintainable, and testable application.
 
-The architecture separates presentation, business logic, and data layers while following Google's recommended Android app architecture.
+The application separates UI, business logic, and data access into independent layers while following Google's recommended Android architecture.
 
 ---
 
 # Architecture Diagram
 
 ```text
-               UI (Jetpack Compose)
-                        │
-                        ▼
-                  ViewModel (MVVM)
-                        │
-                        ▼
-                 Repository Layer
-              ┌─────────┴─────────┐
-              ▼                   ▼
-        Remote Data          Local Database
-       (Retrofit API)          (Room)
-              │                   │
-              └─────────┬─────────┘
-                        ▼
-                  Kotlin Coroutines
-                        │
-                        ▼
-                 StateFlow / Flow
-                        │
-                        ▼
-                Compose UI Updates
+                Jetpack Compose UI
+                       │
+                       ▼
+                  HomeViewModel
+                       │
+                       ▼
+                 EventRepository
+              ┌────────┴────────┐
+              ▼                 ▼
+       Room Database     JSON Data Source
+       (Persistence)    (assets/events.json)
+              │
+              ▼
+      Cache Manager (TTL)
+      SharedPreferences
 ```
 
 ---
@@ -41,35 +35,30 @@ The architecture separates presentation, business logic, and data layers while f
 ```text
 app
 │
-├── ui
+├── assets
+│   └── events.json
+│
+├── data
+│   ├── cache
+│   ├── local
+│   ├── mapper
+│   ├── remote
+│   └── repository
+│
+├── domain
+│
+├── presentation
 │   ├── home
 │   ├── details
 │   ├── bookmarks
-│   ├── map
-│   └── search
+│   ├── components
+│   └── navigation
 │
-├── navigation
+├── util
 │
-├── data
-│   ├── api
-│   ├── database
-│   ├── dao
-│   ├── entity
-│   ├── repository
-│   └── datasource
+├── worker
 │
-├── domain
-│   ├── model
-│   ├── repository
-│   └── usecases
-│
-├── di
-│
-├── workers
-│
-├── utils
-│
-└── MainActivity
+└── MainActivity.kt
 ```
 
 ---
@@ -77,39 +66,40 @@ app
 # MVVM Flow
 
 ```text
-User Action
-      │
-      ▼
+User
+ │
+ ▼
 Compose Screen
-      │
-      ▼
+ │
+ ▼
 ViewModel
-      │
-      ▼
+ │
+ ▼
 Repository
-      │
- ┌────┴────┐
- ▼         ▼
-Room    Retrofit
-      │
-      ▼
+ │
+ ├──────────────┐
+ ▼              ▼
+Room      JSON Data Source
+ │
+ ▼
 StateFlow
-      │
-      ▼
-Compose UI Refresh
+ │
+ ▼
+Compose UI
 ```
 
 ---
 
 # Data Flow
 
-1. User interacts with the UI.
-2. ViewModel processes the request.
-3. Repository decides whether to use local cache or network.
-4. Retrofit fetches remote data.
-5. Room caches the response.
-6. ViewModel exposes StateFlow.
-7. Compose automatically updates the screen.
+1. User opens the application.
+2. The ViewModel requests data from the Repository.
+3. The Repository checks the cache expiration.
+4. If the cache is valid, Room data is used.
+5. Otherwise, data is loaded from the bundled `events.json` file.
+6. Events are stored in Room.
+7. Room emits updates through Flow.
+8. StateFlow updates the Compose UI automatically.
 
 ---
 
@@ -117,53 +107,56 @@ Compose UI Refresh
 
 ## MVVM
 
-- Separates UI from business logic.
-- Easier unit testing.
-- Lifecycle-aware.
+- Separates UI from business logic
+- Easier testing
+- Lifecycle-aware
 
 ## Repository Pattern
 
-- Single source of truth.
-- Abstracts network and database.
-- Simplifies testing.
+- Single source of truth
+- Centralizes data access
+- Simplifies future expansion
 
 ## Room Database
 
-- Offline access.
-- Persistent bookmarks.
-- Fast local queries.
+- Persists events locally
+- Stores bookmark state
+- Supports offline access
 
-## Retrofit
+## Local JSON Data Source
 
-- REST API communication.
-- JSON parsing with Gson.
+The assignment allowed either a mock REST API or a JSON file.
 
-## Kotlin Coroutines
+A bundled JSON file was selected to keep the project deterministic and avoid external dependencies during the time-boxed implementation.
 
-- Asynchronous programming.
-- Non-blocking operations.
-- Improved responsiveness.
+The data source can easily be replaced by Retrofit in the future.
 
-## Hilt Dependency Injection
+## Manual Dependency Management
 
-- Automatic dependency management.
-- Easier testing.
-- Less boilerplate.
+Dependencies are created manually using a ViewModel Factory.
+
+For a larger production application, Hilt could be introduced to improve dependency management.
+
+## Kotlin Coroutines & Flow
+
+- Asynchronous operations
+- Reactive UI updates
+- Non-blocking execution
 
 ---
 
 # Scalability
 
-The project is designed so new features can be added with minimal code changes.
+The architecture allows future additions with minimal changes, including:
 
-Examples:
-
-- User Authentication
-- Push Notifications
-- Calendar Sync
-- Ticket Booking
-- Payment Integration
-- AI Event Recommendations
+- REST API integration
+- Search
+- Distance filtering
+- Authentication
+- Push notifications
+- Calendar synchronization
+- Ticket booking
+- Analytics
 
 ---
 
@@ -171,50 +164,56 @@ Examples:
 
 The application handles:
 
-- Network failures
-- API exceptions
-- Empty results
-- Offline mode
-- Database failures
+- Missing location permission
+- Empty event list
+- Invalid cache
+- Database operations
 
-using Kotlin Result classes, try/catch blocks, and StateFlow UI states.
+The current implementation does not include network error handling because the application uses a bundled local JSON data source.
 
 ---
 
 # Performance Optimizations
 
-- Room caching
+- Room persistence
+- Coil image caching
+- SharedPreferences TTL cache
 - LazyColumn rendering
-- Coroutines
+- Kotlin Coroutines
 - StateFlow
-- WorkManager
-- Efficient recomposition
+- WorkManager worker implementation
 
 ---
 
 # Testing Strategy
 
-- Unit Testing
-- Repository Testing
-- ViewModel Testing
-- UI Testing
-- Navigation Testing
+The project includes unit tests for:
+
+- Cache policy
+- Bookmark policy
+- Distance calculation
+
+The architecture supports additional Repository, ViewModel, and UI tests as the application grows.
 
 ---
 
 # Future Improvements
 
-- Firebase Authentication
-- Firebase Cloud Messaging
-- Dark Theme
-- Pagination
-- Multi-language Support
-- Analytics Dashboard
-- Wear OS Support
-- Tablet Optimization
+- Replace JSON with Retrofit
+- Hilt Dependency Injection
+- Pull-to-refresh
+- Search
+- Distance filtering
+- Periodic WorkManager scheduling
+- Compose UI tests
+- CI/CD
+- Firebase
+- Push notifications
 
 ---
 
 # Summary
 
-EventsExplorer follows modern Android development practices using MVVM, Repository Pattern, Hilt, Room, Retrofit, Kotlin Coroutines, and Jetpack Compose. The architecture promotes clean separation of concerns, maintainability, scalability, and high performance.
+EventsExplorer follows a modern Android architecture using **MVVM**, the **Repository Pattern**, **Room**, **Jetpack Compose**, **Coroutines**, **Flow**, and **WorkManager**.
+
+The project emphasizes maintainability, clear separation of concerns, offline persistence, and efficient resource usage while remaining aligned with the assignment scope.
