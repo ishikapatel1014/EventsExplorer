@@ -6,68 +6,91 @@ A modern Android application built using **Kotlin** and **Jetpack Compose** that
 
 ## 🚀 Features
 
-- 🔍 Browse and discover upcoming events
-- ❤️ Bookmark favorite events for quick access
-- 📍 View event locations using Google Maps
-- 📏 Filter events based on proximity
-- 💾 Offline caching with Room Database
-- 🔄 Automatic background data synchronization using WorkManager
-- ⚡ Fast and responsive UI built with Jetpack Compose
-- 🎯 MVVM architecture for clean and maintainable code
+- 📋 Browse upcoming events
+- 📄 View event details
+- ❤️ Bookmark favorite events
+- 💾 Persistent bookmarks using Room Database
+- 📍 Calculate distance to events using device location
+- 🗺️ Open event location in Google Maps
+- 🖼️ Image caching using Coil
+- ⚡ Local event caching with 10-minute TTL
+- 📱 Responsive UI built with Jetpack Compose
+- 🔄 Background refresh worker implementation
+- 📦 Offline access to previously stored events
 
 ---
 
 ## 📱 Screens
 
-- Home Screen
+- Home
 - Event Details
 - Bookmarks
-- Search & Filter
-- Map View
 
 ---
 
 ## 🛠 Tech Stack
 
-### Language
+## Language
 - Kotlin
 
-### UI
+## UI
 - Jetpack Compose
 - Material Design 3
 
-### Architecture
-- MVVM (Model-View-ViewModel)
+## Architecture
+- MVVM
 - Repository Pattern
 
-### Dependency Injection
-- Hilt
-
-### Local Storage
+## Local Storage
 - Room Database
-- DataStore Preferences
+- SharedPreferences (Cache Metadata)
 
-### Networking
-- Retrofit
-- OkHttp
-- Gson Converter
+## Data Source
+- Local JSON (assets/events.json)
+- Gson
 
-### Asynchronous Programming
+## Asynchronous Programming
 - Kotlin Coroutines
 - Flow
+- StateFlow
 
-### Background Processing
-- WorkManager
+## Navigation
+- Navigation Compose
 
-### Maps & Location
-- Google Maps SDK
+## Location
 - Fused Location Provider
 
-### Navigation
-- Jetpack Navigation Compose
+## Background Processing
+- WorkManager
 
-### Image Loading
+## Image Loading
 - Coil
+
+## Testing
+- JUnit4
+
+---
+
+# 💾 Caching Strategy
+
+### Event Cache
+
+The application stores the last refresh timestamp using **SharedPreferences**.
+
+If cached data is less than **10 minutes old**, Room data is reused instead of reloading the JSON source.
+
+### Image Cache
+
+Images are automatically cached by **Coil**, reducing memory and network usage.
+
+---
+
+# 📍 Native Android Features
+
+- Runtime location permission
+- Distance calculation using current location
+- Google Maps deep link
+- Background refresh worker
 
 ---
 
@@ -75,90 +98,103 @@ A modern Android application built using **Kotlin** and **Jetpack Compose** that
 
 ```
 app/
- ├── data/
- │   ├── local/
- │   ├── remote/
- │   └── repository/
- │
- ├── domain/
- │
- ├── ui/
- │   ├── home/
- │   ├── bookmarks/
- │   ├── details/
- │   └── map/
- │
- ├── navigation/
- │
- ├── util/
- │
- └── MainActivity.kt
+├── assets/
+│   └── events.json
+│
+├── data/
+│   ├── cache/
+│   ├── local/
+│   ├── mapper/
+│   ├── remote/
+│   └── repository/
+│
+├── domain/
+│
+├── presentation/
+│   ├── home/
+│   ├── details/
+│   ├── bookmarks/
+│   └── components/
+│
+├── util/
+│
+├── worker/
+│
+└── MainActivity.kt
 ```
 
 ---
 
 ## ⚙️ Getting Started
 
-### Clone the repository
+
+## Requirements
+
+- Android Studio Narwhal or newer
+- Android SDK 36
+- Java 11
+- Kotlin 2.2+
+
+## Clone Repository
 
 ```bash
 git clone https://github.com/ishikapatel1014/EventsExplorer.git
 ```
 
-### Open Project
+## Run
 
-Open the project using **Android Studio Narwhal (or newer)**.
+1. Open the project in Android Studio.
+2. Sync Gradle.
+3. Run the application.
+4. Grant location permission.
 
-### Build
-
-Sync Gradle and Run the application.
-
----
-
-## 📋 Requirements
-
-- Android Studio Narwhal or newer
-- Android SDK 35+
-- Kotlin 2.x
-- Gradle 8+
+No API key is required because event data is loaded from a bundled JSON file.
 
 ---
 
 ## 🧪 Testing
 
-- Unit Testing
-- UI Testing
-- Manual Testing
+The project includes unit tests for:
+
+- Cache policy
+- Bookmark policy
+- Distance calculation
+
+Run tests:
+
+```bash
+./gradlew test
+```
 
 ---
 
 ## 📈 Future Improvements
 
-- Firebase Authentication
-- Push Notifications
-- Event Sharing
-- Dark Mode
-- Calendar Integration
-- AI-based Event Recommendations
-- Ticket Booking
-- Cloud Synchronization
+- Replace JSON with Retrofit REST API
+- Schedule periodic WorkManager refresh
+- Add pull-to-refresh
+- Search events
+- Filter by distance
+- Embedded Google Maps
+- Compose UI tests
+- Repository integration tests
+- Hilt Dependency Injection
+- CI/CD pipeline
 
 ---
 
 ## 📚 Libraries Used
 
 - Jetpack Compose
-- Material3
-- Retrofit
-- OkHttp
+- Material 3
 - Room
-- Hilt
+- Navigation Compose
+- Coil
 - Coroutines
 - Flow
-- Coil
-- Navigation Compose
 - WorkManager
-- Google Maps SDK
+- Gson
+- Google Play Services Location
 
 ---
 
