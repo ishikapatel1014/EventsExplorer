@@ -170,8 +170,6 @@ Android Developer | Kotlin | Java | Jetpack Compose | MVVM
 
 GitHub: https://github.com/ishikapatel1014
 
-LinkedIn: https://www.linkedin.com/in/ishikapatel14
-
 ---
 
 ## ⭐ Support
