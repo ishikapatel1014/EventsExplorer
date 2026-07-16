@@ -8,11 +8,16 @@ This document defines the engineering principles followed in EventsExplorer to e
 
 # Coding Standards
 
-- Follow Kotlin Coding Conventions.
-- Use meaningful class, function, and variable names.
-- Keep functions small and focused.
-- Avoid duplicate code (DRY Principle).
-- Prefer immutable (`val`) over mutable (`var`) objects.
+The project follows the official **Kotlin Coding Conventions**.
+
+Key principles include:
+
+-   Use meaningful class, function, and variable names.
+-   Keep functions small and focused on a single responsibility.
+-   Prefer immutable (`val`) over mutable (`var`) whenever possible.
+-   Avoid duplicate code (DRY Principle).
+-   Keep business logic separate from UI code.
+-   Use descriptive comments only where necessary.
 
 ---
 
@@ -20,56 +25,88 @@ This document defines the engineering principles followed in EventsExplorer to e
 
 The application follows:
 
-- MVVM Architecture
-- Repository Pattern
-- Clean Architecture principles
-- Dependency Injection using Hilt
+-   MVVM (Model--View--ViewModel)
+-   Repository Pattern
+-   Separation of concerns
+-   Manual dependency management using a ViewModel Factory
 
+The Repository acts as the single access point for event data while the
+ViewModel exposes observable UI state to the Compose screens.
 ---
 
 # UI Guidelines
 
-- Build UI using Jetpack Compose.
-- Follow Material Design 3.
-- Keep composables reusable.
-- Hoist state whenever possible.
+The user interface follows modern Android recommendations:
+
+-   Built entirely with Jetpack Compose
+-   Material Design 3 components
+-   Reusable composables
+-   State hoisting where appropriate
+-   Responsive layouts
+-   Minimal UI logic inside composables
 
 ---
 
 # State Management
 
-- StateFlow
-- MutableStateFlow
-- ViewModel
-- Lifecycle-aware state collection
+Application state is managed using:
+
+-   ViewModel
+-   Kotlin StateFlow
+-   Kotlin Flow
+-   Lifecycle-aware state collection
+
+Compose automatically updates the UI whenever observable state changes.
 
 ---
 
-# Networking
+# Data Management
 
-- Retrofit
-- OkHttp
-- Gson Converter
-- Coroutines
+The project uses:
 
----
+-   Room Database for local persistence
+-   Repository Pattern for data access
+-   SharedPreferences for cache metadata
+-   Local JSON file (`assets/events.json`) as the data source
 
-# Database
-
-- Room Database
-- DAO Pattern
-- Repository abstraction
+Room serves as the application's persistent source of truth.
 
 ---
 
-# Dependency Injection
+# Caching Strategy
 
-Hilt is used for:
+## Event Cache
 
-- ViewModels
-- Repository
-- Database
-- Network layer
+-   Stores the last refresh timestamp in SharedPreferences.
+-   Uses a 10-minute Time-To-Live (TTL).
+-   Reuses Room data when the cache is valid.
+
+## Image Cache
+
+-   Coil automatically provides memory and disk caching for event
+    images.
+
+---
+
+# Background Processing
+
+The application includes a WorkManager worker implementation for
+refreshing event data.
+
+The worker is implemented but is not periodically scheduled, as periodic
+synchronization was outside the scope of the assignment.
+
+---
+
+# Location Services
+
+The application follows Android best practices by:
+
+-   Requesting runtime location permission
+-   Using the Fused Location Provider
+-   Retrieving the device's last known location
+-   Calculating event distance efficiently
+-   Opening event locations using a Google Maps deep link
 
 ---
 
@@ -77,85 +114,96 @@ Hilt is used for:
 
 The application handles:
 
-- API failures
-- Network connectivity
-- Database errors
-- Invalid user input
+-   Missing location permission
+-   Empty event lists
+-   Invalid or expired cache
+-   Database operations
 
-using proper exception handling and Result wrappers.
+Because the application uses a bundled JSON data source, network-related
+error handling is not required in the current implementation.
 
 ---
 
-# Performance
+# Performance Considerations
 
-Best practices include:
+The project includes several optimizations:
 
-- LazyColumn
-- Coroutine background processing
-- Room caching
-- Efficient Compose recomposition
-- WorkManager for background tasks
+-   Room persistence
+-   SharedPreferences TTL cache
+-   Coil image caching
+-   LazyColumn for efficient list rendering
+-   Kotlin Coroutines for asynchronous work
+-   StateFlow for reactive UI updates
+-   WorkManager-compatible background refresh logic
 
 ---
 
 # Testing
 
-Recommended testing includes:
+The project contains unit tests covering core business logic:
 
-- Unit Tests
-- ViewModel Tests
-- Repository Tests
-- UI Tests
-- Navigation Tests
+-   Cache policy
+-   Bookmark policy
+-   Distance calculation
+
+The architecture also supports future Repository, ViewModel, and Compose
+UI tests.
 
 ---
 
 # Git Workflow
 
-1. Create a feature branch.
-2. Commit small logical changes.
-3. Write meaningful commit messages.
-4. Push changes.
-5. Open Pull Request.
+Recommended development workflow:
 
+1.  Create a feature branch.
+2.  Implement one logical feature at a time.
+3.  Commit small, meaningful changes.
+4.  Write clear commit messages.
+5.  Merge changes after review.
 ---
 
-# Commit Message Examples
+# Example Commit Messages
 
+``` text
+Add bookmark functionality
+
+Implement Room persistence
+
+Add cache expiration logic
+
+Improve event detail screen
+
+Update project documentation
 ```
-Add bookmark feature
-
-Fix Room migration bug
-
-Improve search performance
-
-Update README
-
-Refactor ViewModel
-```
-
 ---
 
 # Security
 
-- Never commit API keys.
-- Store secrets securely.
-- Validate user input.
-- Use HTTPS for network communication.
+The project follows basic Android security practices:
+
+-   No API keys or secrets are committed.
+-   Runtime permissions are requested only when required.
+-   User location is accessed only after permission is granted.
+-   Sensitive data is not stored unnecessarily.
 
 ---
 
-# Future Enhancements
+# Future Improvements
 
-- Firebase Authentication
-- Push Notifications
-- CI/CD Pipeline
-- Analytics
-- Dark Theme
-- Offline-first support
+Potential production enhancements include:
 
+-   Replace the local JSON data source with a REST API
+-   Introduce Hilt for dependency injection
+-   Add CI/CD for automated testing
+-   Add Compose UI tests
+-   Add repository integration tests
+-   Schedule periodic WorkManager refresh
+-   Add search and distance filtering
+-   Support push notifications
 ---
 
 # Summary
 
-These engineering standards ensure the project remains scalable, maintainable, secure, and aligned with modern Android development best practices.
+The project prioritizes clean code, maintainability, offline
+persistence, and efficient resource usage while remaining aligned with
+the assignment scope.
